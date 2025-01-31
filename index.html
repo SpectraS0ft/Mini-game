@@ -42,6 +42,11 @@
             position: absolute;
             cursor: pointer;
             box-shadow: 0 0 10px gold;
+            transition: transform 0.2s;
+        }
+
+        .coin:active {
+            transform: scale(0.9);
         }
 
         #conversionMenu {
@@ -93,38 +98,43 @@
         <div id="conversionMenu">
             <div id="codeDisplay">XXXX</div>
             <button onclick="startConversion()">
-                <i class="fas fa-lock"></i> Kodni Sotib Olish (50 tanga)
+                <i class="fas fa-lock"></i> Kodni Sotib Olish (300 tanga)
             </button>
         </div>
     </div>
 
     <script>
         let coins = 0;
+        let gameDuration = 60000; // 1 daqiqa
+        let coinsSpawned = 0;
 
-        function addCoin() {
+        function collectCoin() {
             coins++;
+            this.remove();
             document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
-            createCoin();
         }
 
         function createCoin() {
+            if(coinsSpawned >= 300) return;
+            
             const coin = document.createElement('div');
             coin.className = 'coin';
             coin.style.top = Math.random() * (300 - 40) + 'px';
             coin.style.left = Math.random() * (300 - 40) + 'px';
-            coin.onclick = addCoin;
+            coin.onclick = collectCoin;
             document.getElementById('gameArea').appendChild(coin);
+            coinsSpawned++;
         }
 
         function endGame() {
-            if (coins >= 50) {
+            if (coins >= 300) {
                 document.getElementById('conversionMenu').style.display = 'block';
             }
         }
 
         function startConversion() {
-            let code = '2552';
-            let display = document.getElementById('codeDisplay');
+            let code = '5225';
+            let display = document .getElementById('codeDisplay');
             let current = 'XXXX';
             let index = 0;
 
@@ -140,12 +150,13 @@
         }
 
         // O'yin boshlanishi
-        for (let i = 0; i < 5; i++) {
-            createCoin();
-        }
+        const coinInterval = setInterval(createCoin, 200); // 200 ms ichida yangi tanga yaratish
 
         // O'yin tugashi
-        setTimeout(endGame, 30000); // 30 soniyadan so'ng o'yin tugaydi
+        setTimeout(() => {
+            clearInterval(coinInterval);
+            endGame();
+        }, gameDuration); // 1 daqiqa o'yin
     </script>
 </body>
 </html>
