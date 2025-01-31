@@ -24,6 +24,12 @@
             color: #FFD700;
         }
 
+        #timer {
+            font-size: 24px;
+            margin: 20px;
+            color: #FF4500;
+        }
+
         #gameArea {
             width: 300px;
             height: 300px;
@@ -90,6 +96,7 @@
 <body>
     <div id="gameContainer">
         <div id="coinCounter"><i class="fas fa-coins"></i> Tangalar: 0</div>
+        <div id="timer">Vaqt: 60</div>
         
         <div id="gameArea">
             <!-- O'yin maydoni -->
@@ -98,15 +105,16 @@
         <div id="conversionMenu">
             <div id="codeDisplay">XXXX</div>
             <button onclick="startConversion()">
-                <i class="fas fa-lock"></i> Kodni Sotib Olish (300 tanga)
+                <i class="fas fa-lock"></i> Kodni Sotib Olish (900 tanga)
             </button>
         </div>
     </div>
 
     <script>
         let coins = 0;
-        let gameDuration = 60000; // 1 daqiqa
+        let gameDuration = 60; // 1 daqiqa
         let coinsSpawned = 0;
+        let timerInterval;
 
         function collectCoin() {
             coins++;
@@ -122,41 +130,77 @@
             coin.style.top = Math.random() * (300 - 40) + 'px';
             coin.style.left = Math.random() * (300 - 40) + 'px';
             coin.onclick = collectCoin;
-            document.getElementById('gameArea').appendChild(coin);
+            document.getElement ById('gameArea').appendChild(coin);
             coinsSpawned++;
         }
 
-        function endGame() {
-            if (coins >= 300) {
-                document.getElementById('conversionMenu').style.display = 'block';
-            }
-        }
-
-        function startConversion() {
-            let code = '5225';
-            let display = document .getElementById('codeDisplay');
-            let current = 'XXXX';
-            let index = 0;
-
-            const interval = setInterval(() => {
-                if (index < code.length) {
-                    current = current.substring(0, index) + code[index] + current.substring(index + 1);
-                    display.innerText = current;
-                    index++;
-                } else {
-                    clearInterval(interval);
+        function startTimer() {
+            let timeLeft = gameDuration;
+            document.getElementById('timer').innerText = `Vaqt: ${timeLeft}`;
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').innerText = `Vaqt: ${timeLeft}`;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    resetGame();
                 }
             }, 1000);
         }
 
-        // O'yin boshlanishi
-        const coinInterval = setInterval(createCoin, 200); // 200 ms ichida yangi tanga yaratish
+        function resetGame() {
+            coins = 0;
+            coinsSpawned = 0;
+            document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
+            document.getElementById('timer').innerText = `Vaqt: ${gameDuration}`;
+            document.getElementById('gameArea').innerHTML = '';
+            startTimer();
+            for (let i = 0; i < 10; i++) createCoin(); // Create initial coins
+        }
 
-        // O'yin tugashi
-        setTimeout(() => {
-            clearInterval(coinInterval);
-            endGame();
-        }, gameDuration); // 1 daqiqa o'yin
+        function startConversion() {
+            if (coins >= 900) {
+                coins -= 900;
+                document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
+                animateCodeDisplay('5225');
+            } else {
+                alert('Tangalar yetarli emas!');
+            }
+        }
+
+        function animateCodeDisplay(code) {
+            const codeDisplay = document.getElementById('codeDisplay');
+            codeDisplay.innerText = '';
+            let index = 0;
+            const interval = setInterval(() => {
+                if (index < code.length) {
+                    codeDisplay.innerText += code[index];
+                    index++;
+                } else {
+                    clearInterval(interval);
+                }
+            }, 1000); // 1 second delay for each character
+        }
+
+        // LocalStorage for balance
+        function saveBalance() {
+            localStorage.setItem('balance', coins);
+        }
+
+        function loadBalance() {
+            const savedCoins = localStorage.getItem('balance');
+            if (savedCoins) {
+                coins = parseInt(savedCoins);
+                document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
+            }
+        }
+
+        window.onload = function() {
+            loadBalance();
+            resetGame();
+            startTimer();
+        };
+
+        window.onbeforeunload = saveBalance;
     </script>
 </body>
 </html>
