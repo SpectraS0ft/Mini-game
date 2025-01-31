@@ -121,8 +121,8 @@
 
         function collectCoin() {
             coins++;
-            this.remove();
             document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
+            createCoin(); // Create a new coin immediately after collecting one
         }
 
         function createCoin() {
@@ -133,7 +133,7 @@
             coin.style.top = Math.random() * (300 - 40) + 'px';
             coin.style.left = Math.random() * (300 - 40) + 'px';
             coin.onclick = collectCoin;
-            document.getElementById('gameArea'). appendChild(coin);
+            document.getElementById('gameArea').appendChild(coin);
             coinsSpawned++;
         }
 
