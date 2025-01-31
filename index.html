@@ -3,216 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sirli Kod O'yini</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Tanga Clicker O'yini</title>
     <style>
         body {
-            margin: 0;
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: white;
             font-family: Arial, sans-serif;
             text-align: center;
+            background-color: #f0f0f0;
         }
 
-        #gameContainer {
-            padding: 20px;
-        }
-
-        #coinCounter {
+        #tangalar {
             font-size: 24px;
             margin: 20px;
-            color: #FFD700;
+            color: #c90;
         }
 
-        #timer {
-            font-size: 24px;
-            margin: 20px;
-            color: #FF4500;
-        }
-
-        #gameArea {
-            width: 300px;
-            height: 300px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            margin: 0 auto;
+        .tanga {
+            width: 150px;
+            height: 150px;
+            background-color: #gold;
+            border-radius: 50%;
+            margin: 20px auto;
+            cursor: pointer;
+            border: 5px solid #daa520;
             position: relative;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="96" height="96"><path fill="%23000000" d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        #zaryad {
+            width: 200px;
+            height: 20px;
+            background-color: #ddd;
+            margin: 10px auto;
+            border-radius: 10px;
             overflow: hidden;
         }
 
-        .coin {
-            width: 40px;
-            height: 40px;
-            background: #FFD700;
-            border-radius: 50%;
-            position: absolute;
-            cursor: pointer;
-            box-shadow: 0 0 10px gold;
-            transition: transform 0.2s;
+        #zaryad-ich {
+            width: 100%;
+            height: 100%;
+            background-color: #4CAF50;
+            transition: width 0.3s;
         }
 
-        .coin:active {
-            transform: scale(0.9);
-        }
-
-        #conversionMenu {
-            display: none;
-            background: rgba(0,0,0,0.9);
+        .dokon {
+            background-color: white;
             padding: 20px;
-            border-radius: 15px;
-            margin: 20px auto;
-            width: 80%;
+            margin: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        #codeDisplay {
-            font-size: 32px;
+        .yaxshilanish {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .sirli-kod {
+            font-size: 24px;
             letter-spacing: 10px;
             margin: 20px;
             font-family: monospace;
         }
 
-        button {
-            background: #4CAF50;
-            border: none;
-            padding: 15px 30px;
-            color: white;
-            border-radius: 25px;
-            font-size: 18px;
-            cursor: pointer;
-            transition: transform 0.3s;
-            margin: 10px;
+        .animatsiya {
+            animation: harfAnim 0.5s ease-in-out;
         }
 
-        button:hover {
-            transform: scale(1.1);
-        }
-
-        .icon {
-            font-size: 40px;
-            margin: 10px;
+        @keyframes harfAnim {
+            0% { transform: rotate(0deg); }
+            50% { transform: rotate(360deg); }
+            100% { transform: rotate(0deg); }
         }
     </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <div id="coinCounter"><i class="fas fa-coins"></i> Tangalar: 0</div>
-        <div id="timer">Vaqt: 60</div>
-        
-        <div id="gameArea">
-            <!-- O'yin maydoni -->
-        </div>
-
-        <div id="conversionMenu">
-            <div id="codeDisplay">XXXX</div>
-            <button onclick="startConversion()">
-                <i class="fas fa-lock"></i> Kodni Sotib Olish (900 tanga)
-            </button>
-        </div>
-
-        <button id="startButton" onclick="startGame()">O'yinni Boshlash</button>
-        <button id="storeButton" onclick="openStore()">Magazin</button>
+    <div id="tangalar">Tangalar: <span id="balans">0</span></div>
+    
+    <div class="tanga" onclick="tangaBos()"></div>
+    
+    <div id="zaryad">
+ <div id="zaryad-ich"></div>
     </div>
-
+    
+    <div class="dokon">
+        <h2>Do'kon</h2>
+        <div class="yaxshilanish" onclick="yaxshilanishSotibOl(100)">Yaxshilanish 1 (100 tanga)</div>
+        <div class="yaxshilanish" onclick="yaxshilanishSotibOl(200)">Yaxshilanish 2 (200 tanga)</div>
+        <div class="yaxshilanish" onclick="yaxshilanishSotibOl(300)">Yaxshilanish 3 (300 tanga)</div>
+    </div>
+    
+    <div class="sirli-kod" id="sirliKod">Sirli kod: XXXX</div>
+    
     <script>
-        let coins = 0;
-        let gameDuration = 60; // 1 daqiqa
-        let coinsSpawned = 0;
-        let timerInterval;
+        let balans = 0;
+        let zaryad = 100;
+        const zaryadMax = 100;
+        const localStorageKey = 'tangaClicker';
 
-        function collectCoin() {
-            coins++;
-            document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
-            createCoin(); // Create a new coin immediately after collecting one
-        }
-
-        function createCoin() {
-            if (coinsSpawned >= 300) return;
-            
-            const coin = document.createElement('div');
-            coin.className = 'coin';
-            coin.style.top = Math.random() * (300 - 40) + 'px';
-            coin.style.left = Math.random() * (300 - 40) + 'px';
-            coin.onclick = collectCoin;
-            document.getElementById('gameArea').appendChild(coin);
-            coinsSpawned++;
-        }
-
-        function startTimer() {
-            let timeLeft = gameDuration;
-            document.getElementById('timer').innerText = `Vaqt: ${timeLeft}`;
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                document.getElementById('timer').innerText = `Vaqt: ${timeLeft}`;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    resetGame();
-                }
-            }, 1000);
-        }
-
-        function resetGame() {
-            coins = 0;
-            coinsSpawned = 0;
-            document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
-            document.getElementById('timer').innerText = `Vaqt: ${gameDuration}`;
-            document.getElementById('gameArea').innerHTML = '';
-            startTimer();
-            for (let i = 0; i < 10; i++) createCoin(); // Create initial coins
-        }
-
-        function startGame() {
-            resetGame();
-            document.getElementById('startButton').style.display = 'none';
-            document.getElementById('storeButton').style.display = 'inline-block';
-        }
-
-        function openStore() {
-            document.getElementById('conversionMenu').style.display = 'block';
-        }
-
-        function startConversion() {
-            if (coins >= 900) {
-                coins -= 900;
-                document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
-                animateCodeDisplay('5225');
+        function tangaBos() {
+            if (zaryad > 0) {
+                balans++;
+                zaryad--;
+                document.getElementById('balans').innerText = balans;
+                document.getElementById('zaryad-ich').style.width = (zaryad / zaryadMax) * 100 + '%';
+                localStorage.setItem(localStorageKey, JSON.stringify({ balans, zaryad }));
             } else {
-                alert('Tangalar yetarli emas!');
+                alert("Zaryad tugadi! Iltimos, kuting.");
             }
         }
 
-        function animateCodeDisplay(code) {
-            const codeDisplay = document.getElementById('codeDisplay');
-            codeDisplay.innerText = '';
-            let index = 0;
-            const interval = setInterval(() => {
-                if (index < code.length) {
-                    codeDisplay.innerText += code[index];
-                    index++;
-                } else {
-                    clearInterval(interval);
+        function yaxshilanishSotibOl(narx) {
+            if (balans >= narx) {
+                balans -= narx;
+                document.getElementById('balans').innerText = balans;
+                alert("Muvaffaqiyatli sotib olindi!");
+                if (narx === 900) {
+                    sirliKodAniqlash();
                 }
-            }, 1000); // 1 second delay for each character
-        }
-
-        // LocalStorage for balance
-        function saveBalance() {
-            localStorage.setItem('balance', coins);
-        }
-
-        function loadBalance() {
-            const savedCoins = localStorage.getItem('balance');
-            if (savedCoins) {
-                coins = parseInt(savedCoins);
-                document.getElementById('coinCounter').innerHTML = `<i class="fas fa-coins"></i> Tangalar: ${coins}`;
+                localStorage.setItem(localStorageKey, JSON.stringify({ balans, zaryad }));
+            } else {
+                alert("Tangalar yetarli emas!");
             }
         }
 
-        window.onload = function() {
-            loadBalance();
-            document.getElementById('storeButton').style.display = 'none'; // Hide store button initially
-        };
+        function sirliKodAniqlash() {
+            const kod = "5525";
+            let sirliKodDiv = document.getElementById('sirliKod');
+            sirliKodDiv.innerText = "Sirli kod: ";
+            for (let i = 0; i < kod.length; i++) {
+                setTimeout(() => {
+                    sirliKodDiv.innerText += kod[i];
+                    sirliKodDiv.classList.add('animatsiya');
+                }, i * 1000);
+            }
+        }
 
-        window.onbeforeunload = saveBalance;
+        function yuklash() {
+            const saqlanganMa'lumot = JSON.parse(localStorage.getItem(localStorageKey));
+            if (saqlanganMa'lumot) {
+                balans = saqlanganMa'lumot.balans;
+                zaryad = saqlanganMa'lumot.zaryad;
+                document.getElementById('balans').innerText = balans;
+                document.getElementById('zaryad-ich').style.width = (zaryad / zaryadMax) * 100 + '%';
+            }
+        }
+
+        window.onload = yuklash;
     </script>
 </body>
 </html>
